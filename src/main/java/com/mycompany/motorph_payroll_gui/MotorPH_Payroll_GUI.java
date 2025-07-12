@@ -426,89 +426,10 @@ class Admin extends User {
         }
     }
     
-    public void loadAttendanceFromExcel(String filePath, String sheetName) {
-        try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
-            Workbook workbook;
-            
-            // Determine file type and create appropriate workbook
-            if (filePath.toLowerCase().endsWith(".xlsx")) {
-                workbook = new XSSFWorkbook(fileInputStream);
-            } else if (filePath.toLowerCase().endsWith(".xls")) {
-                workbook = new HSSFWorkbook(fileInputStream);
-            } else {
-                throw new IllegalArgumentException("Unsupported file format. Please use .xlsx or .xls files.");
-            }
-            
-            // Get the specified sheet
-            Sheet sheet;
-            if (sheetName != null && !sheetName.isEmpty()) {
-                sheet = workbook.getSheet(sheetName);
-                if (sheet == null) {
-                    // If sheet name not found, show available sheets
-                    StringBuilder availableSheets = new StringBuilder("Available sheets:\n");
-                    for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-                        availableSheets.append("- ").append(workbook.getSheetName(i)).append("\n");
-                    }
-                    throw new IllegalArgumentException("Sheet '" + sheetName + "' not found.\n" + availableSheets.toString());
-                }
-            } else {
-                // Use first sheet if no sheet name specified
-                sheet = workbook.getSheetAt(0);
-            }
-            
-            // Clear existing attendance records
-            attendanceRecords.clear();
-            
-            // Read data from sheet
-            boolean firstRow = true;
-            for (Row row : sheet) {
-                // Skip header row
-                if (firstRow) {
-                    firstRow = false;
-                    continue;
-                }
-                
-                // Check if row has enough cells (EmployeeID, LastName, FirstName, Date, LogIn, LogOut)
-                if (row.getLastCellNum() >= 6) {
-                    try {
-                        int employeeId = (int) getNumericCellValue(row.getCell(0));
-                        String lastName = getStringCellValue(row.getCell(1));
-                        String firstName = getStringCellValue(row.getCell(2));
-                        String date = getStringCellValue(row.getCell(3));
-                        String logIn = getStringCellValue(row.getCell(4));
-                        String logOut = getStringCellValue(row.getCell(5));
-                        
-                        // Skip empty rows
-                        if (employeeId == 0 || firstName.isEmpty()) {
-                            continue;
-                        }
-                        
-                        // Create and add attendance record
-                        Attendance attendance = new Attendance(employeeId, lastName, firstName, date, logIn, logOut);
-                        attendanceRecords.add(attendance);
-                        
-                    } catch (Exception e) {
-                        System.err.println("Error reading attendance row " + row.getRowNum() + ": " + e.getMessage());
-                        // Continue with next row instead of stopping
-                    }
-                }
-            }
-            
-            workbook.close();
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error loading attendance data: " + e.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(null, 
-                e.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
-        }
-    }
+    // Getters and setters
+    public String getAdminName() { return adminName; }
+    public String getEmail() { return email; }
+    public List<Employee> getEmployees() { return employees; }
 }
 
 // Payslip class - composition with Employee
@@ -544,126 +465,49 @@ class Payslip {
 
 // Attendance class - composition with Employee
 class Attendance {
-    private int employeeId;
-    private String lastName;
-    private String firstName;
-    private String date;
-    private String logIn;
-    private String logOut;
+    private int id;
+    private String name;
+    private int birthday;
+    private LocalDateTime loginDateTime;
+    private LocalDateTime logoutDateTime;
     private Employee employee;
     
-    // Constructor for loading from Excel
-    public Attendance(int employeeId, String lastName, String firstName, String date, 
-                     String logIn, String logOut) {
-        this.employeeId = employeeId;
-        this.lastName = lastName;
-        this.firstName = firstName;
-        this.date = date;
-        this.logIn = logIn;
-        this.logOut = logOut;
-    }
-    
-    // Constructor with Employee object (for backward compatibility)
     public Attendance(Employee employee) {
         this.employee = employee;
-        this.employeeId = employee.getEmpId();
-        this.lastName = employee.getLastName();
-        this.firstName = employee.getFirstName();
-        this.date = "";
-        this.logIn = "";
-        this.logOut = "";
+        this.id = employee.getEmpId();
+        this.name = employee.getName();
+        this.birthday = employee.getBirthday();
     }
     
     public void update(LocalDateTime loginTime, LocalDateTime logoutTime) {
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-        
-        if (loginTime != null) {
-            this.date = loginTime.format(dateFormatter);
-            this.logIn = loginTime.format(timeFormatter);
-        }
-        if (logoutTime != null) {
-            this.logOut = logoutTime.format(timeFormatter);
-        }
+        this.loginDateTime = loginTime;
+        this.logoutDateTime = logoutTime;
     }
     
     public String getAttendanceDetails() {
-        StringBuilder details = new StringBuilder();
-        details.append("Employee ID: ").append(employeeId).append("\n");
-        details.append("Name: ").append(getFullName()).append("\n");
-        details.append("Date: ").append(date).append("\n");
-        details.append("Log In: ").append(logIn).append("\n");
-        details.append("Log Out: ").append(logOut).append("\n");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String loginStr = loginDateTime != null ? loginDateTime.format(formatter) : "Not logged in";
+        String logoutStr = logoutDateTime != null ? logoutDateTime.format(formatter) : "Not logged out";
         
-        if (!logIn.isEmpty() && !logOut.isEmpty()) {
-            try {
-                LocalDateTime loginDateTime = LocalDateTime.parse(date + "T" + logIn);
-                LocalDateTime logoutDateTime = LocalDateTime.parse(date + "T" + logOut);
-                long hoursWorked = java.time.Duration.between(loginDateTime, logoutDateTime).toHours();
-                details.append("Hours Worked: ").append(hoursWorked);
-            } catch (Exception e) {
-                details.append("Hours Worked: Unable to calculate");
-            }
+        StringBuilder details = new StringBuilder();
+        details.append("Employee ID: ").append(id).append("\n");
+        details.append("Name: ").append(name).append("\n");
+        details.append("Login Time: ").append(loginStr).append("\n");
+        details.append("Logout Time: ").append(logoutStr).append("\n");
+        
+        if (loginDateTime != null && logoutDateTime != null) {
+            long hoursWorked = java.time.Duration.between(loginDateTime, logoutDateTime).toHours();
+            details.append("Hours Worked: ").append(hoursWorked);
         }
         
         return details.toString();
     }
     
-    public String getFullName() {
-        return firstName + " " + lastName;
-    }
-    
-    public long calculateHoursWorked() {
-        if (logIn.isEmpty() || logOut.isEmpty() || date.isEmpty()) {
-            return 0;
-        }
-        
-        try {
-            LocalDateTime loginDateTime = LocalDateTime.parse(date + "T" + logIn);
-            LocalDateTime logoutDateTime = LocalDateTime.parse(date + "T" + logOut);
-            return java.time.Duration.between(loginDateTime, logoutDateTime).toHours();
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-    
     // Getters
-    public int getId() { return employeeId; }
-    public int getEmployeeId() { return employeeId; }
-    public String getLastName() { return lastName; }
-    public String getFirstName() { return firstName; }
-    public String getName() { return getFullName(); }
-    public String getDate() { return date; }
-    public String getLogIn() { return logIn; }
-    public String getLogOut() { return logOut; }
-    public String getTimeIn() { return logIn; } // For backward compatibility
-    public String getTimeOut() { return logOut; } // For backward compatibility
-    public LocalDateTime getLoginDateTime() { 
-        if (date.isEmpty() || logIn.isEmpty()) return null;
-        try {
-            return LocalDateTime.parse(date + "T" + logIn);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-    public LocalDateTime getLogoutDateTime() { 
-        if (date.isEmpty() || logOut.isEmpty()) return null;
-        try {
-            return LocalDateTime.parse(date + "T" + logOut);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-    
-    // Setters
-    public void setEmployeeId(int employeeId) { this.employeeId = employeeId; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-    public void setDate(String date) { this.date = date; }
-    public void setLogIn(String logIn) { this.logIn = logIn; }
-    public void setLogOut(String logOut) { this.logOut = logOut; }
-    public void setTimeIn(String timeIn) { this.logIn = timeIn; } // For backward compatibility
-    public void setTimeOut(String timeOut) { this.logOut = timeOut; } // For backward compatibility
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public LocalDateTime getLoginDateTime() { return loginDateTime; }
+    public LocalDateTime getLogoutDateTime() { return logoutDateTime; }
 }
 
 // PayrollSystem class - main system logic
@@ -690,130 +534,6 @@ class PayrollSystem {
     
     public void loadEmployeesFromExcel(String filePath, String sheetName) {
         admin.loadEmployeesFromExcel(filePath, sheetName);
-    }
-    
-    public void loadAttendanceFromExcel(String filePath, String sheetName) {
-        try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
-            Workbook workbook;
-            
-            // Determine file type and create appropriate workbook
-            if (filePath.toLowerCase().endsWith(".xlsx")) {
-                workbook = new XSSFWorkbook(fileInputStream);
-            } else if (filePath.toLowerCase().endsWith(".xls")) {
-                workbook = new HSSFWorkbook(fileInputStream);
-            } else {
-                throw new IllegalArgumentException("Unsupported file format. Please use .xlsx or .xls files.");
-            }
-            
-            // Get the specified sheet
-            Sheet sheet;
-            if (sheetName != null && !sheetName.isEmpty()) {
-                sheet = workbook.getSheet(sheetName);
-                if (sheet == null) {
-                    // If sheet name not found, show available sheets
-                    StringBuilder availableSheets = new StringBuilder("Available sheets:\n");
-                    for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-                        availableSheets.append("- ").append(workbook.getSheetName(i)).append("\n");
-                    }
-                    throw new IllegalArgumentException("Sheet '" + sheetName + "' not found.\n" + availableSheets.toString());
-                }
-            } else {
-                // Use first sheet if no sheet name specified
-                sheet = workbook.getSheetAt(0);
-            }
-            
-            // Clear existing attendance records
-            attendanceRecords.clear();
-            
-            // Read data from sheet
-            boolean firstRow = true;
-            for (Row row : sheet) {
-                // Skip header row
-                if (firstRow) {
-                    firstRow = false;
-                    continue;
-                }
-                
-                // Check if row has enough cells (EmployeeID, LastName, FirstName, Date, LogIn, LogOut)
-                if (row.getLastCellNum() >= 6) {
-                    try {
-                        int employeeId = (int) getNumericCellValue(row.getCell(0));
-                        String lastName = getStringCellValue(row.getCell(1));
-                        String firstName = getStringCellValue(row.getCell(2));
-                        String date = getStringCellValue(row.getCell(3));
-                        String logIn = getStringCellValue(row.getCell(4));
-                        String logOut = getStringCellValue(row.getCell(5));
-                        
-                        // Skip empty rows
-                        if (employeeId == 0 || firstName.isEmpty()) {
-                            continue;
-                        }
-                        
-                        // Create and add attendance record
-                        Attendance attendance = new Attendance(employeeId, lastName, firstName, date, logIn, logOut);
-                        attendanceRecords.add(attendance);
-                        
-                    } catch (Exception e) {
-                        System.err.println("Error reading attendance row " + row.getRowNum() + ": " + e.getMessage());
-                        // Continue with next row instead of stopping
-                    }
-                }
-            }
-            
-            workbook.close();
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, 
-                "Error loading attendance data: " + e.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(null, 
-                e.getMessage(), 
-                "Error", 
-                JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    // Helper method to get string value from cell regardless of cell type
-    private String getStringCellValue(Cell cell) {
-        if (cell == null) return "";
-        
-        switch (cell.getCellType()) {
-            case STRING:
-                return cell.getStringCellValue().trim();
-            case NUMERIC:
-                if (DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getDateCellValue().toString();
-                } else {
-                    return String.valueOf((long) cell.getNumericCellValue());
-                }
-            case BOOLEAN:
-                return String.valueOf(cell.getBooleanCellValue());
-            case FORMULA:
-                return cell.getCellFormula();
-            default:
-                return "";
-        }
-    }
-    
-    // Helper method to get numeric value from cell
-    private double getNumericCellValue(Cell cell) {
-        if (cell == null) return 0;
-        
-        switch (cell.getCellType()) {
-            case NUMERIC:
-                return cell.getNumericCellValue();
-            case STRING:
-                try {
-                    return Double.parseDouble(cell.getStringCellValue().trim());
-                } catch (NumberFormatException e) {
-                    return 0;
-                }
-            default:
-                return 0;
-        }
     }
     
     public Payslip generatePayslip(int empId, int salary, int deductions) {
@@ -852,13 +572,9 @@ public class MotorPH_Payroll_GUI extends JFrame {
     public MotorPH_Payroll_GUI() {
         payrollSystem = new PayrollSystem();
         
-        // Load data from Excel file
-        String excelPath = "/Users/jemwagas/NetBeansProjects/Practice/src/main/java/com/mycompany/practice/MotorPH Employee Data.xlsx";
-        String attendanceSheetName = "Attendance Record";
-        payrollSystem.loadAttendanceFromExcel(excelPath, attendanceSheetName);
-        
+        // Load data from excel file
          String excelPath = "/Users/jemwagas/NetBeansProjects/Practice/src/main/java/com/mycompany/practice/MotorPH Employee Data.xlsx";
-         String sheetName = "Employee Data";
+         String sheetName = "Employee Details";
          payrollSystem.loadEmployeesFromExcel(excelPath, sheetName);
         
         initializeGUI();
@@ -1073,27 +789,13 @@ public class MotorPH_Payroll_GUI extends JFrame {
     private JPanel createAttendancePanel() {
         JPanel panel = new JPanel(new BorderLayout());
         
-        // Attendance table with headers matching Excel sheet
-        String[] columnNames = {
-            "Employee ID", "Last Name", "First Name", "Date", "Log In", "Log Out", "Hours Worked"
-        };
+        // Attendance table
+        String[] columnNames = {"Employee ID", "Name", "Login Time", "Logout Time", "Hours Worked"};
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
         JTable attendanceTable = new JTable(tableModel);
-        
-        // Set column widths for better display
-        attendanceTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        attendanceTable.getColumnModel().getColumn(0).setPreferredWidth(100); // Employee ID
-        attendanceTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Last Name
-        attendanceTable.getColumnModel().getColumn(2).setPreferredWidth(120); // First Name
-        attendanceTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Date
-        attendanceTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Log In
-        attendanceTable.getColumnModel().getColumn(5).setPreferredWidth(100); // Log Out
-        attendanceTable.getColumnModel().getColumn(6).setPreferredWidth(120); // Hours Worked
-        
         refreshAttendanceTable(tableModel);
         
         JScrollPane scrollPane = new JScrollPane(attendanceTable);
-        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         panel.add(scrollPane, BorderLayout.CENTER);
         
         // Button panel
@@ -1550,17 +1252,24 @@ public class MotorPH_Payroll_GUI extends JFrame {
     // Helper methods for attendance management
     private void refreshAttendanceTable(DefaultTableModel tableModel) {
         tableModel.setRowCount(0);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         
         for (Attendance attendance : payrollSystem.getAttendanceRecords()) {
-            long hoursWorked = attendance.calculateHoursWorked();
+            String loginTime = attendance.getLoginDateTime() != null ? 
+                attendance.getLoginDateTime().format(formatter) : "No log in";
+            String logoutTime = attendance.getLogoutDateTime() != null ? 
+                attendance.getLogoutDateTime().format(formatter) : "No log out";
+            
+            long hoursWorked = 0;
+            if (attendance.getLoginDateTime() != null && attendance.getLogoutDateTime() != null) {
+                hoursWorked = java.time.Duration.between(attendance.getLoginDateTime(), attendance.getLogoutDateTime()).toHours();
+            }
             
             Object[] rowData = {
-                attendance.getEmployeeId(),
-                attendance.getLastName(),
-                attendance.getFirstName(),
-                attendance.getDate(),
-                attendance.getLogIn(),
-                attendance.getLogOut(),
+                attendance.getId(),
+                attendance.getName(),
+                loginTime,
+                logoutTime,
                 hoursWorked + " hours"
             };
             tableModel.addRow(rowData);
