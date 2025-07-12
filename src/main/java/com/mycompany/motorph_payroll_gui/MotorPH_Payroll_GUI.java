@@ -131,12 +131,7 @@ class Employee extends User {
     }
     
     public void view() {
-        System.out.println("Employee ID: " + empId);
-        System.out.println("Name: " + getFullName());
-        System.out.println("Birthday: " + birthday);
-        System.out.println("Position: " + position);
-        System.out.println("Status: " + status);
-        System.out.println("Login Status: " + loginStatus);
+
     }
     
     public String getFullName() {
@@ -661,7 +656,7 @@ public class MotorPH_Payroll_GUI extends JFrame {
         // Header
         JPanel headerPanel = new JPanel(new FlowLayout());
         headerPanel.setBackground(new java.awt.Color(70, 130, 180));
-        JLabel headerLabel = new JLabel("Motor PH's Payroll Management Dashboard");
+        JLabel headerLabel = new JLabel("Payroll Management Dashboard");
         headerLabel.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 18));
         headerLabel.setForeground(java.awt.Color.WHITE);
         headerPanel.add(headerLabel);
