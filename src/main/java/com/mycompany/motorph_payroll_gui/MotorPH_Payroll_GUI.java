@@ -483,7 +483,7 @@ public class MotorPH_Payroll_GUI extends JFrame {
         dialog.setSize(300, 200);
         dialog.setLocationRelativeTo(this);
         
-        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(4,3, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         JTextField idField = new JTextField();
@@ -545,7 +545,7 @@ public class MotorPH_Payroll_GUI extends JFrame {
             dialog.setSize(300, 150);
             dialog.setLocationRelativeTo(this);
             
-            JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
+            JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
             panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
             
             JTextField nameField = new JTextField(emp.getName());
@@ -611,9 +611,9 @@ public class MotorPH_Payroll_GUI extends JFrame {
             Object[] rowData = {
                 payslip.getId(),
                 payslip.getName(),
-                "$" + payslip.getSalary(),
-                "$" + payslip.getDeductions(),
-                "$" + payslip.getNetSalary()
+                "PHP" + payslip.getSalary(),
+                "PHP" + payslip.getDeductions(),
+                "PHP" + payslip.getNetSalary()
             };
             tableModel.addRow(rowData);
         }
@@ -624,7 +624,7 @@ public class MotorPH_Payroll_GUI extends JFrame {
         dialog.setSize(300, 180);
         dialog.setLocationRelativeTo(this);
         
-        JPanel panel = new JPanel(new GridLayout(4, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         JTextField idField = new JTextField();
@@ -695,9 +695,9 @@ public class MotorPH_Payroll_GUI extends JFrame {
         
         for (Attendance attendance : payrollSystem.getAttendanceRecords()) {
             String loginTime = attendance.getLoginDateTime() != null ? 
-                attendance.getLoginDateTime().format(formatter) : "Not logged in";
+                attendance.getLoginDateTime().format(formatter) : "No log in";
             String logoutTime = attendance.getLogoutDateTime() != null ? 
-                attendance.getLogoutDateTime().format(formatter) : "Not logged out";
+                attendance.getLogoutDateTime().format(formatter) : "No log out";
             
             long hoursWorked = 0;
             if (attendance.getLoginDateTime() != null && attendance.getLogoutDateTime() != null) {
