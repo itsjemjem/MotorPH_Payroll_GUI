@@ -573,7 +573,7 @@ public class MotorPH_Payroll_GUI extends JFrame {
         payrollSystem = new PayrollSystem();
         
         // Load data from excel file
-         String excelPath = "/Users/jemwagas/NetBeansProjects/Practice/src/main/java/com/mycompany/practice/MotorPH Employee Data.xlsx";
+         String excelPath = "/Users/jemwagas/NetBeansProjects/MotorPH_Payroll_GUI/src/main/java/com/mycompany/motorph_payroll_gui/MotorPH Employee Data.xlsx";
          String sheetName = "Employee Details";
          payrollSystem.loadEmployeesFromExcel(excelPath, sheetName);
         
