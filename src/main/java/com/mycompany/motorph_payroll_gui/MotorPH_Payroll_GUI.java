@@ -18,6 +18,17 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+// Apache POI imports for Excel handling
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
 // User class - base class for authentication
 class User {
@@ -50,27 +61,131 @@ class User {
 
 // Employee class - extends User
 class Employee extends User {
-    private String name;
+    private String lastName;
+    private String firstName;
     private int birthday;
+    private String address;
+    private String phoneNumber;
+    private String sssNum;
+    private String philhealthNum;
+    private String tinNum;
+    private String pagibigNum;
+    private String status;
+    private String position;
+    private String immediateSupervisor;
+    private double basicSalary;
+    private double riceSubsidy;
+    private double phoneAllowance;
+    private double clothingAllowance;
+    private double grossSemiMonthlyRate;
+    private double hourlyRate;
     
+    public Employee(int id, String lastName, String firstName, int birthday, String address,
+                   String phoneNumber, String sssNum, String philhealthNum, String tinNum,
+                   String pagibigNum, String status, String position, String immediateSupervisor,
+                   double basicSalary, double riceSubsidy, double phoneAllowance,
+                   double clothingAllowance, double grossSemiMonthlyRate, double hourlyRate, String password) {
+        super(id, password);
+        this.lastName = lastName;
+        this.firstName = firstName;
+        this.birthday = birthday;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+        this.sssNum = sssNum;
+        this.philhealthNum = philhealthNum;
+        this.tinNum = tinNum;
+        this.pagibigNum = pagibigNum;
+        this.status = status;
+        this.position = position;
+        this.immediateSupervisor = immediateSupervisor;
+        this.basicSalary = basicSalary;
+        this.riceSubsidy = riceSubsidy;
+        this.phoneAllowance = phoneAllowance;
+        this.clothingAllowance = clothingAllowance;
+        this.grossSemiMonthlyRate = grossSemiMonthlyRate;
+        this.hourlyRate = hourlyRate;
+    }
+    
+    // Simple constructor for backward compatibility
     public Employee(int id, String name, int birthday, String password) {
         super(id, password);
-        this.name = name;
+        String[] nameParts = name.split(" ", 2);
+        this.firstName = nameParts[0];
+        this.lastName = nameParts.length > 1 ? nameParts[1] : "";
         this.birthday = birthday;
+        this.address = "";
+        this.phoneNumber = "";
+        this.sssNum = "";
+        this.philhealthNum = "";
+        this.tinNum = "";
+        this.pagibigNum = "";
+        this.status = "Active";
+        this.position = "";
+        this.immediateSupervisor = "";
+        this.basicSalary = 0.0;
+        this.riceSubsidy = 0.0;
+        this.phoneAllowance = 0.0;
+        this.clothingAllowance = 0.0;
+        this.grossSemiMonthlyRate = 0.0;
+        this.hourlyRate = 0.0;
     }
     
     public void view() {
         System.out.println("Employee ID: " + empId);
-        System.out.println("Name: " + name);
+        System.out.println("Name: " + getFullName());
         System.out.println("Birthday: " + birthday);
+        System.out.println("Position: " + position);
+        System.out.println("Status: " + status);
         System.out.println("Login Status: " + loginStatus);
     }
     
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+    
     // Getters and setters
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() { return getFullName(); }
+    public void setName(String name) { 
+        String[] nameParts = name.split(" ", 2);
+        this.firstName = nameParts[0];
+        this.lastName = nameParts.length > 1 ? nameParts[1] : "";
+    }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
     public int getBirthday() { return birthday; }
     public void setBirthday(int birthday) { this.birthday = birthday; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public String getSssNum() { return sssNum; }
+    public void setSssNum(String sssNum) { this.sssNum = sssNum; }
+    public String getPhilhealthNum() { return philhealthNum; }
+    public void setPhilhealthNum(String philhealthNum) { this.philhealthNum = philhealthNum; }
+    public String getTinNum() { return tinNum; }
+    public void setTinNum(String tinNum) { this.tinNum = tinNum; }
+    public String getPagibigNum() { return pagibigNum; }
+    public void setPagibigNum(String pagibigNum) { this.pagibigNum = pagibigNum; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public String getPosition() { return position; }
+    public void setPosition(String position) { this.position = position; }
+    public String getImmediateSupervisor() { return immediateSupervisor; }
+    public void setImmediateSupervisor(String immediateSupervisor) { this.immediateSupervisor = immediateSupervisor; }
+    public double getBasicSalary() { return basicSalary; }
+    public void setBasicSalary(double basicSalary) { this.basicSalary = basicSalary; }
+    public double getRiceSubsidy() { return riceSubsidy; }
+    public void setRiceSubsidy(double riceSubsidy) { this.riceSubsidy = riceSubsidy; }
+    public double getPhoneAllowance() { return phoneAllowance; }
+    public void setPhoneAllowance(double phoneAllowance) { this.phoneAllowance = phoneAllowance; }
+    public double getClothingAllowance() { return clothingAllowance; }
+    public void setClothingAllowance(double clothingAllowance) { this.clothingAllowance = clothingAllowance; }
+    public double getGrossSemiMonthlyRate() { return grossSemiMonthlyRate; }
+    public void setGrossSemiMonthlyRate(double grossSemiMonthlyRate) { this.grossSemiMonthlyRate = grossSemiMonthlyRate; }
+    public double getHourlyRate() { return hourlyRate; }
+    public void setHourlyRate(double hourlyRate) { this.hourlyRate = hourlyRate; }
 }
 
 // Admin class - extends User
@@ -116,10 +231,284 @@ class Admin extends User {
         return false;
     }
     
-    // Getters and setters
-    public String getAdminName() { return adminName; }
-    public String getEmail() { return email; }
-    public List<Employee> getEmployees() { return employees; }
+    public void loadEmployeesFromCSV(String filePath) {
+        Path path = Paths.get(filePath);
+        try (BufferedReader br = new BufferedReader(new FileReader(path.toFile()))) {
+            String line;
+            // Skip header row
+            br.readLine();
+            
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split(",");
+                if (values.length >= 19) { // Updated to match all CSV columns
+                    try {
+                        int id = Integer.parseInt(values[0].trim());
+                        String lastName = values[1].trim();
+                        String firstName = values[2].trim();
+                        int birthday = Integer.parseInt(values[3].trim());
+                        String address = values[4].trim();
+                        String phoneNumber = values[5].trim();
+                        String sssNum = values[6].trim();
+                        String philhealthNum = values[7].trim();
+                        String tinNum = values[8].trim();
+                        String pagibigNum = values[9].trim();
+                        String status = values[10].trim();
+                        String position = values[11].trim();
+                        String immediateSupervisor = values[12].trim();
+                        double basicSalary = Double.parseDouble(values[13].trim());
+                        double riceSubsidy = Double.parseDouble(values[14].trim());
+                        double phoneAllowance = Double.parseDouble(values[15].trim());
+                        double clothingAllowance = Double.parseDouble(values[16].trim());
+                        double grossSemiMonthlyRate = Double.parseDouble(values[17].trim());
+                        double hourlyRate = Double.parseDouble(values[18].trim());
+                        
+                        // Use a default password (you might want to add this as a column in CSV)
+                        String password = "pass" + id;
+                        
+                        Employee emp = new Employee(id, lastName, firstName, birthday, address,
+                                                  phoneNumber, sssNum, philhealthNum, tinNum,
+                                                  pagibigNum, status, position, immediateSupervisor,
+                                                  basicSalary, riceSubsidy, phoneAllowance,
+                                                  clothingAllowance, grossSemiMonthlyRate, hourlyRate, password);
+                        this.add(emp);
+                    } catch (NumberFormatException e) {
+                        System.err.println("Error parsing line: " + line + " - " + e.getMessage());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, 
+                "Error loading employee data: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    public void loadEmployeesFromExcel(String filePath, String sheetName) {
+        try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
+            Workbook workbook;
+            
+            // Determine file type and create appropriate workbook
+            if (filePath.toLowerCase().endsWith(".xlsx")) {
+                workbook = new XSSFWorkbook(fileInputStream);
+            } else if (filePath.toLowerCase().endsWith(".xls")) {
+                workbook = new HSSFWorkbook(fileInputStream);
+            } else {
+                throw new IllegalArgumentException("Unsupported file format. Please use .xlsx or .xls files.");
+            }
+            
+            // Get the specified sheet
+            Sheet sheet;
+            if (sheetName != null && !sheetName.isEmpty()) {
+                sheet = workbook.getSheet(sheetName);
+                if (sheet == null) {
+                    // If sheet name not found, show available sheets
+                    StringBuilder availableSheets = new StringBuilder("Available sheets:\n");
+                    for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                        availableSheets.append("- ").append(workbook.getSheetName(i)).append("\n");
+                    }
+                    throw new IllegalArgumentException("Sheet '" + sheetName + "' not found.\n" + availableSheets.toString());
+                }
+            } else {
+                // Use first sheet if no sheet name specified
+                sheet = workbook.getSheetAt(0);
+            }
+            
+            // Read data from sheet
+            boolean firstRow = true;
+            for (Row row : sheet) {
+                // Skip header row
+                if (firstRow) {
+                    firstRow = false;
+                    continue;
+                }
+                
+                // Check if row has enough cells
+                if (row.getLastCellNum() >= 19) {
+                    try {
+                        int id = (int) getNumericCellValue(row.getCell(0));
+                        String lastName = getStringCellValue(row.getCell(1));
+                        String firstName = getStringCellValue(row.getCell(2));
+                        int birthday = (int) getNumericCellValue(row.getCell(3));
+                        String address = getStringCellValue(row.getCell(4));
+                        String phoneNumber = getStringCellValue(row.getCell(5));
+                        String sssNum = getStringCellValue(row.getCell(6));
+                        String philhealthNum = getStringCellValue(row.getCell(7));
+                        String tinNum = getStringCellValue(row.getCell(8));
+                        String pagibigNum = getStringCellValue(row.getCell(9));
+                        String status = getStringCellValue(row.getCell(10));
+                        String position = getStringCellValue(row.getCell(11));
+                        String immediateSupervisor = getStringCellValue(row.getCell(12));
+                        double basicSalary = getNumericCellValue(row.getCell(13));
+                        double riceSubsidy = getNumericCellValue(row.getCell(14));
+                        double phoneAllowance = getNumericCellValue(row.getCell(15));
+                        double clothingAllowance = getNumericCellValue(row.getCell(16));
+                        double grossSemiMonthlyRate = getNumericCellValue(row.getCell(17));
+                        double hourlyRate = getNumericCellValue(row.getCell(18));
+                        
+                        // Skip empty rows
+                        if (id == 0 || firstName.isEmpty()) {
+                            continue;
+                        }
+                        
+                        // Use a default password
+                        String password = "pass" + id;
+                        
+                        // Create and add employee
+                        Employee emp = new Employee(id, lastName, firstName, birthday, address,
+                                                  phoneNumber, sssNum, philhealthNum, tinNum,
+                                                  pagibigNum, status, position, immediateSupervisor,
+                                                  basicSalary, riceSubsidy, phoneAllowance,
+                                                  clothingAllowance, grossSemiMonthlyRate, hourlyRate, password);
+                        this.add(emp);
+                        
+                    } catch (Exception e) {
+                        System.err.println("Error reading row " + row.getRowNum() + ": " + e.getMessage());
+                        // Continue with next row instead of stopping
+                    }
+                }
+            }
+            
+            workbook.close();
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, 
+                "Error loading Excel file: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(null, 
+                e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    // Helper method to get string value from cell regardless of cell type
+    private String getStringCellValue(Cell cell) {
+        if (cell == null) return "";
+        
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getDateCellValue().toString();
+                } else {
+                    return String.valueOf((long) cell.getNumericCellValue());
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                return cell.getCellFormula();
+            default:
+                return "";
+        }
+    }
+    
+    // Helper method to get numeric value from cell
+    private double getNumericCellValue(Cell cell) {
+        if (cell == null) return 0;
+        
+        switch (cell.getCellType()) {
+            case NUMERIC:
+                return cell.getNumericCellValue();
+            case STRING:
+                try {
+                    return Double.parseDouble(cell.getStringCellValue().trim());
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
+            default:
+                return 0;
+        }
+    }
+    
+    public void loadAttendanceFromExcel(String filePath, String sheetName) {
+        try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
+            Workbook workbook;
+            
+            // Determine file type and create appropriate workbook
+            if (filePath.toLowerCase().endsWith(".xlsx")) {
+                workbook = new XSSFWorkbook(fileInputStream);
+            } else if (filePath.toLowerCase().endsWith(".xls")) {
+                workbook = new HSSFWorkbook(fileInputStream);
+            } else {
+                throw new IllegalArgumentException("Unsupported file format. Please use .xlsx or .xls files.");
+            }
+            
+            // Get the specified sheet
+            Sheet sheet;
+            if (sheetName != null && !sheetName.isEmpty()) {
+                sheet = workbook.getSheet(sheetName);
+                if (sheet == null) {
+                    // If sheet name not found, show available sheets
+                    StringBuilder availableSheets = new StringBuilder("Available sheets:\n");
+                    for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                        availableSheets.append("- ").append(workbook.getSheetName(i)).append("\n");
+                    }
+                    throw new IllegalArgumentException("Sheet '" + sheetName + "' not found.\n" + availableSheets.toString());
+                }
+            } else {
+                // Use first sheet if no sheet name specified
+                sheet = workbook.getSheetAt(0);
+            }
+            
+            // Clear existing attendance records
+            attendanceRecords.clear();
+            
+            // Read data from sheet
+            boolean firstRow = true;
+            for (Row row : sheet) {
+                // Skip header row
+                if (firstRow) {
+                    firstRow = false;
+                    continue;
+                }
+                
+                // Check if row has enough cells (EmployeeID, LastName, FirstName, Date, LogIn, LogOut)
+                if (row.getLastCellNum() >= 6) {
+                    try {
+                        int employeeId = (int) getNumericCellValue(row.getCell(0));
+                        String lastName = getStringCellValue(row.getCell(1));
+                        String firstName = getStringCellValue(row.getCell(2));
+                        String date = getStringCellValue(row.getCell(3));
+                        String logIn = getStringCellValue(row.getCell(4));
+                        String logOut = getStringCellValue(row.getCell(5));
+                        
+                        // Skip empty rows
+                        if (employeeId == 0 || firstName.isEmpty()) {
+                            continue;
+                        }
+                        
+                        // Create and add attendance record
+                        Attendance attendance = new Attendance(employeeId, lastName, firstName, date, logIn, logOut);
+                        attendanceRecords.add(attendance);
+                        
+                    } catch (Exception e) {
+                        System.err.println("Error reading attendance row " + row.getRowNum() + ": " + e.getMessage());
+                        // Continue with next row instead of stopping
+                    }
+                }
+            }
+            
+            workbook.close();
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, 
+                "Error loading attendance data: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(null, 
+                e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }
 
 // Payslip class - composition with Employee
@@ -155,49 +544,126 @@ class Payslip {
 
 // Attendance class - composition with Employee
 class Attendance {
-    private int id;
-    private String name;
-    private int birthday;
-    private LocalDateTime loginDateTime;
-    private LocalDateTime logoutDateTime;
+    private int employeeId;
+    private String lastName;
+    private String firstName;
+    private String date;
+    private String logIn;
+    private String logOut;
     private Employee employee;
     
+    // Constructor for loading from Excel
+    public Attendance(int employeeId, String lastName, String firstName, String date, 
+                     String logIn, String logOut) {
+        this.employeeId = employeeId;
+        this.lastName = lastName;
+        this.firstName = firstName;
+        this.date = date;
+        this.logIn = logIn;
+        this.logOut = logOut;
+    }
+    
+    // Constructor with Employee object (for backward compatibility)
     public Attendance(Employee employee) {
         this.employee = employee;
-        this.id = employee.getEmpId();
-        this.name = employee.getName();
-        this.birthday = employee.getBirthday();
+        this.employeeId = employee.getEmpId();
+        this.lastName = employee.getLastName();
+        this.firstName = employee.getFirstName();
+        this.date = "";
+        this.logIn = "";
+        this.logOut = "";
     }
     
     public void update(LocalDateTime loginTime, LocalDateTime logoutTime) {
-        this.loginDateTime = loginTime;
-        this.logoutDateTime = logoutTime;
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        
+        if (loginTime != null) {
+            this.date = loginTime.format(dateFormatter);
+            this.logIn = loginTime.format(timeFormatter);
+        }
+        if (logoutTime != null) {
+            this.logOut = logoutTime.format(timeFormatter);
+        }
     }
     
     public String getAttendanceDetails() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        String loginStr = loginDateTime != null ? loginDateTime.format(formatter) : "Not logged in";
-        String logoutStr = logoutDateTime != null ? logoutDateTime.format(formatter) : "Not logged out";
-        
         StringBuilder details = new StringBuilder();
-        details.append("Employee ID: ").append(id).append("\n");
-        details.append("Name: ").append(name).append("\n");
-        details.append("Login Time: ").append(loginStr).append("\n");
-        details.append("Logout Time: ").append(logoutStr).append("\n");
+        details.append("Employee ID: ").append(employeeId).append("\n");
+        details.append("Name: ").append(getFullName()).append("\n");
+        details.append("Date: ").append(date).append("\n");
+        details.append("Log In: ").append(logIn).append("\n");
+        details.append("Log Out: ").append(logOut).append("\n");
         
-        if (loginDateTime != null && logoutDateTime != null) {
-            long hoursWorked = java.time.Duration.between(loginDateTime, logoutDateTime).toHours();
-            details.append("Hours Worked: ").append(hoursWorked);
+        if (!logIn.isEmpty() && !logOut.isEmpty()) {
+            try {
+                LocalDateTime loginDateTime = LocalDateTime.parse(date + "T" + logIn);
+                LocalDateTime logoutDateTime = LocalDateTime.parse(date + "T" + logOut);
+                long hoursWorked = java.time.Duration.between(loginDateTime, logoutDateTime).toHours();
+                details.append("Hours Worked: ").append(hoursWorked);
+            } catch (Exception e) {
+                details.append("Hours Worked: Unable to calculate");
+            }
         }
         
         return details.toString();
     }
     
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+    
+    public long calculateHoursWorked() {
+        if (logIn.isEmpty() || logOut.isEmpty() || date.isEmpty()) {
+            return 0;
+        }
+        
+        try {
+            LocalDateTime loginDateTime = LocalDateTime.parse(date + "T" + logIn);
+            LocalDateTime logoutDateTime = LocalDateTime.parse(date + "T" + logOut);
+            return java.time.Duration.between(loginDateTime, logoutDateTime).toHours();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+    
     // Getters
-    public int getId() { return id; }
-    public String getName() { return name; }
-    public LocalDateTime getLoginDateTime() { return loginDateTime; }
-    public LocalDateTime getLogoutDateTime() { return logoutDateTime; }
+    public int getId() { return employeeId; }
+    public int getEmployeeId() { return employeeId; }
+    public String getLastName() { return lastName; }
+    public String getFirstName() { return firstName; }
+    public String getName() { return getFullName(); }
+    public String getDate() { return date; }
+    public String getLogIn() { return logIn; }
+    public String getLogOut() { return logOut; }
+    public String getTimeIn() { return logIn; } // For backward compatibility
+    public String getTimeOut() { return logOut; } // For backward compatibility
+    public LocalDateTime getLoginDateTime() { 
+        if (date.isEmpty() || logIn.isEmpty()) return null;
+        try {
+            return LocalDateTime.parse(date + "T" + logIn);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    public LocalDateTime getLogoutDateTime() { 
+        if (date.isEmpty() || logOut.isEmpty()) return null;
+        try {
+            return LocalDateTime.parse(date + "T" + logOut);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    // Setters
+    public void setEmployeeId(int employeeId) { this.employeeId = employeeId; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public void setDate(String date) { this.date = date; }
+    public void setLogIn(String logIn) { this.logIn = logIn; }
+    public void setLogOut(String logOut) { this.logOut = logOut; }
+    public void setTimeIn(String timeIn) { this.logIn = timeIn; } // For backward compatibility
+    public void setTimeOut(String timeOut) { this.logOut = timeOut; } // For backward compatibility
 }
 
 // PayrollSystem class - main system logic
@@ -216,6 +682,138 @@ class PayrollSystem {
         Employee emp2 = new Employee(102, "Jane Smith", 19851220, "pass456");
         admin.add(emp1);
         admin.add(emp2);
+    }
+    
+    public void loadEmployeesFromCSV(String filePath) {
+        admin.loadEmployeesFromCSV(filePath);
+    }
+    
+    public void loadEmployeesFromExcel(String filePath, String sheetName) {
+        admin.loadEmployeesFromExcel(filePath, sheetName);
+    }
+    
+    public void loadAttendanceFromExcel(String filePath, String sheetName) {
+        try (FileInputStream fileInputStream = new FileInputStream(filePath)) {
+            Workbook workbook;
+            
+            // Determine file type and create appropriate workbook
+            if (filePath.toLowerCase().endsWith(".xlsx")) {
+                workbook = new XSSFWorkbook(fileInputStream);
+            } else if (filePath.toLowerCase().endsWith(".xls")) {
+                workbook = new HSSFWorkbook(fileInputStream);
+            } else {
+                throw new IllegalArgumentException("Unsupported file format. Please use .xlsx or .xls files.");
+            }
+            
+            // Get the specified sheet
+            Sheet sheet;
+            if (sheetName != null && !sheetName.isEmpty()) {
+                sheet = workbook.getSheet(sheetName);
+                if (sheet == null) {
+                    // If sheet name not found, show available sheets
+                    StringBuilder availableSheets = new StringBuilder("Available sheets:\n");
+                    for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                        availableSheets.append("- ").append(workbook.getSheetName(i)).append("\n");
+                    }
+                    throw new IllegalArgumentException("Sheet '" + sheetName + "' not found.\n" + availableSheets.toString());
+                }
+            } else {
+                // Use first sheet if no sheet name specified
+                sheet = workbook.getSheetAt(0);
+            }
+            
+            // Clear existing attendance records
+            attendanceRecords.clear();
+            
+            // Read data from sheet
+            boolean firstRow = true;
+            for (Row row : sheet) {
+                // Skip header row
+                if (firstRow) {
+                    firstRow = false;
+                    continue;
+                }
+                
+                // Check if row has enough cells (EmployeeID, LastName, FirstName, Date, LogIn, LogOut)
+                if (row.getLastCellNum() >= 6) {
+                    try {
+                        int employeeId = (int) getNumericCellValue(row.getCell(0));
+                        String lastName = getStringCellValue(row.getCell(1));
+                        String firstName = getStringCellValue(row.getCell(2));
+                        String date = getStringCellValue(row.getCell(3));
+                        String logIn = getStringCellValue(row.getCell(4));
+                        String logOut = getStringCellValue(row.getCell(5));
+                        
+                        // Skip empty rows
+                        if (employeeId == 0 || firstName.isEmpty()) {
+                            continue;
+                        }
+                        
+                        // Create and add attendance record
+                        Attendance attendance = new Attendance(employeeId, lastName, firstName, date, logIn, logOut);
+                        attendanceRecords.add(attendance);
+                        
+                    } catch (Exception e) {
+                        System.err.println("Error reading attendance row " + row.getRowNum() + ": " + e.getMessage());
+                        // Continue with next row instead of stopping
+                    }
+                }
+            }
+            
+            workbook.close();
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, 
+                "Error loading attendance data: " + e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(null, 
+                e.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    // Helper method to get string value from cell regardless of cell type
+    private String getStringCellValue(Cell cell) {
+        if (cell == null) return "";
+        
+        switch (cell.getCellType()) {
+            case STRING:
+                return cell.getStringCellValue().trim();
+            case NUMERIC:
+                if (DateUtil.isCellDateFormatted(cell)) {
+                    return cell.getDateCellValue().toString();
+                } else {
+                    return String.valueOf((long) cell.getNumericCellValue());
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                return cell.getCellFormula();
+            default:
+                return "";
+        }
+    }
+    
+    // Helper method to get numeric value from cell
+    private double getNumericCellValue(Cell cell) {
+        if (cell == null) return 0;
+        
+        switch (cell.getCellType()) {
+            case NUMERIC:
+                return cell.getNumericCellValue();
+            case STRING:
+                try {
+                    return Double.parseDouble(cell.getStringCellValue().trim());
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
+            default:
+                return 0;
+        }
     }
     
     public Payslip generatePayslip(int empId, int salary, int deductions) {
@@ -251,8 +849,18 @@ public class MotorPH_Payroll_GUI extends JFrame {
     private CardLayout cardLayout;
     private boolean isLoggedIn = false;
     
-    public MotorPH_Payroll_GUI () {
+    public MotorPH_Payroll_GUI() {
         payrollSystem = new PayrollSystem();
+        
+        // Load data from Excel file
+        String excelPath = "/Users/jemwagas/NetBeansProjects/Practice/src/main/java/com/mycompany/practice/MotorPH Employee Data.xlsx";
+        String attendanceSheetName = "Attendance Record";
+        payrollSystem.loadAttendanceFromExcel(excelPath, attendanceSheetName);
+        
+         String excelPath = "/Users/jemwagas/NetBeansProjects/Practice/src/main/java/com/mycompany/practice/MotorPH Employee Data.xlsx";
+         String sheetName = "Employee Data";
+         payrollSystem.loadEmployeesFromExcel(excelPath, sheetName);
+        
         initializeGUI();
     }
     
@@ -279,13 +887,13 @@ public class MotorPH_Payroll_GUI extends JFrame {
     
     private JPanel createLoginPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(240, 248, 255));
+        panel.setBackground(new java.awt.Color(240, 248, 255));
         GridBagConstraints gbc = new GridBagConstraints();
         
         // Title
         JLabel titleLabel = new JLabel("Payroll Management System", JLabel.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(new Color(25, 25, 112));
+        titleLabel.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 24));
+        titleLabel.setForeground(new java.awt.Color(25, 25, 112));
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.insets = new Insets(20, 0, 30, 0);
         panel.add(titleLabel, gbc);
         
@@ -308,9 +916,9 @@ public class MotorPH_Payroll_GUI extends JFrame {
         
         // Login button
         JButton loginButton = new JButton("Login");
-        loginButton.setBackground(new Color(70, 130, 180));
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setFont(new Font("Nunito", Font.BOLD, 14));
+        loginButton.setBackground(new java.awt.Color(70, 130, 180));
+        loginButton.setForeground(java.awt.Color.WHITE);
+        loginButton.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 14));
         gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.insets = new Insets(20, 0, 0, 0);
         panel.add(loginButton, gbc);
         
@@ -336,15 +944,15 @@ public class MotorPH_Payroll_GUI extends JFrame {
         
         // Header
         JPanel headerPanel = new JPanel(new FlowLayout());
-        headerPanel.setBackground(new Color(70, 130, 180));
+        headerPanel.setBackground(new java.awt.Color(70, 130, 180));
         JLabel headerLabel = new JLabel("Motor PH's Payroll Management Dashboard");
-        headerLabel.setFont(new Font("Nunito", Font.BOLD, 18));
-        headerLabel.setForeground(Color.WHITE);
+        headerLabel.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 18));
+        headerLabel.setForeground(java.awt.Color.WHITE);
         headerPanel.add(headerLabel);
         
         JButton logoutButton = new JButton("Logout");
-        logoutButton.setBackground(new Color(220, 20, 60));
-        logoutButton.setForeground(Color.WHITE);
+        logoutButton.setBackground(new java.awt.Color(220, 20, 60));
+        logoutButton.setForeground(java.awt.Color.WHITE);
         logoutButton.addActionListener(e -> {
             payrollSystem.getAdmin().logout();
             isLoggedIn = false;
@@ -368,13 +976,43 @@ public class MotorPH_Payroll_GUI extends JFrame {
     private JPanel createEmployeePanel() {
         JPanel panel = new JPanel(new BorderLayout());
         
-        // Employee table
-        String[] columnNames = {"ID", "Name", "Birthday", "Status"};
+        // Employee table with all CSV headers
+        String[] columnNames = {
+            "Employee ID", "Last Name", "First Name", "Birthday", "Address", 
+            "Phone Number", "SSS Number", "Philhealth Number", "TIN Number", 
+            "Pag-ibig Number", "Status", "Position", "Immediate Supervisor", 
+            "Basic Salary", "Rice Subsidy", "Phone Allowance", "Clothing Allowance", 
+            "Gross Semi-Monthly Rate", "Hourly Rate"
+        };
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
         JTable employeeTable = new JTable(tableModel);
+        
+        // Set column widths for better display
+        employeeTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        employeeTable.getColumnModel().getColumn(0).setPreferredWidth(80);  // Employee ID
+        employeeTable.getColumnModel().getColumn(1).setPreferredWidth(100); // Last Name
+        employeeTable.getColumnModel().getColumn(2).setPreferredWidth(100); // First Name
+        employeeTable.getColumnModel().getColumn(3).setPreferredWidth(80);  // Birthday
+        employeeTable.getColumnModel().getColumn(4).setPreferredWidth(150); // Address
+        employeeTable.getColumnModel().getColumn(5).setPreferredWidth(120); // Phone
+        employeeTable.getColumnModel().getColumn(6).setPreferredWidth(100); // SSS
+        employeeTable.getColumnModel().getColumn(7).setPreferredWidth(120); // Philhealth
+        employeeTable.getColumnModel().getColumn(8).setPreferredWidth(100); // TIN
+        employeeTable.getColumnModel().getColumn(9).setPreferredWidth(100); // Pag-ibig
+        employeeTable.getColumnModel().getColumn(10).setPreferredWidth(80); // Status
+        employeeTable.getColumnModel().getColumn(11).setPreferredWidth(120); // Position
+        employeeTable.getColumnModel().getColumn(12).setPreferredWidth(150); // Supervisor
+        employeeTable.getColumnModel().getColumn(13).setPreferredWidth(100); // Basic Salary
+        employeeTable.getColumnModel().getColumn(14).setPreferredWidth(100); // Rice Subsidy
+        employeeTable.getColumnModel().getColumn(15).setPreferredWidth(120); // Phone Allowance
+        employeeTable.getColumnModel().getColumn(16).setPreferredWidth(130); // Clothing Allowance
+        employeeTable.getColumnModel().getColumn(17).setPreferredWidth(150); // Gross Semi-Monthly
+        employeeTable.getColumnModel().getColumn(18).setPreferredWidth(100); // Hourly Rate
+        
         refreshEmployeeTable(tableModel);
         
         JScrollPane scrollPane = new JScrollPane(employeeTable);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         panel.add(scrollPane, BorderLayout.CENTER);
         
         // Button panel
@@ -435,13 +1073,27 @@ public class MotorPH_Payroll_GUI extends JFrame {
     private JPanel createAttendancePanel() {
         JPanel panel = new JPanel(new BorderLayout());
         
-        // Attendance table
-        String[] columnNames = {"Employee ID", "Name", "Login Time", "Logout Time", "Hours Worked"};
+        // Attendance table with headers matching Excel sheet
+        String[] columnNames = {
+            "Employee ID", "Last Name", "First Name", "Date", "Log In", "Log Out", "Hours Worked"
+        };
         DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
         JTable attendanceTable = new JTable(tableModel);
+        
+        // Set column widths for better display
+        attendanceTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        attendanceTable.getColumnModel().getColumn(0).setPreferredWidth(100); // Employee ID
+        attendanceTable.getColumnModel().getColumn(1).setPreferredWidth(120); // Last Name
+        attendanceTable.getColumnModel().getColumn(2).setPreferredWidth(120); // First Name
+        attendanceTable.getColumnModel().getColumn(3).setPreferredWidth(100); // Date
+        attendanceTable.getColumnModel().getColumn(4).setPreferredWidth(100); // Log In
+        attendanceTable.getColumnModel().getColumn(5).setPreferredWidth(100); // Log Out
+        attendanceTable.getColumnModel().getColumn(6).setPreferredWidth(120); // Hours Worked
+        
         refreshAttendanceTable(tableModel);
         
         JScrollPane scrollPane = new JScrollPane(attendanceTable);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         panel.add(scrollPane, BorderLayout.CENTER);
         
         // Button panel
@@ -470,9 +1122,24 @@ public class MotorPH_Payroll_GUI extends JFrame {
         for (Employee emp : payrollSystem.getAdmin().getEmployees()) {
             Object[] rowData = {
                 emp.getEmpId(),
-                emp.getName(),
+                emp.getLastName(),
+                emp.getFirstName(),
                 emp.getBirthday(),
-                emp.getLoginStatus()
+                emp.getAddress(),
+                emp.getPhoneNumber(),
+                emp.getSssNum(),
+                emp.getPhilhealthNum(),
+                emp.getTinNum(),
+                emp.getPagibigNum(),
+                emp.getStatus(),
+                emp.getPosition(),
+                emp.getImmediateSupervisor(),
+                String.format("₱%.2f", emp.getBasicSalary()),
+                String.format("₱%.2f", emp.getRiceSubsidy()),
+                String.format("₱%.2f", emp.getPhoneAllowance()),
+                String.format("₱%.2f", emp.getClothingAllowance()),
+                String.format("₱%.2f", emp.getGrossSemiMonthlyRate()),
+                String.format("₱%.2f", emp.getHourlyRate())
             };
             tableModel.addRow(rowData);
         }
@@ -480,41 +1147,139 @@ public class MotorPH_Payroll_GUI extends JFrame {
     
     private void showAddEmployeeDialog(DefaultTableModel tableModel) {
         JDialog dialog = new JDialog(this, "Add Employee", true);
-        dialog.setSize(300, 200);
+        dialog.setSize(500, 400);
         dialog.setLocationRelativeTo(this);
         
-        JPanel panel = new JPanel(new GridLayout(4,3, 10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        
+        // Create tabbed pane for better organization
+        JTabbedPane tabbedPane = new JTabbedPane();
+        
+        // Basic Info Tab
+        JPanel basicPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+        basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         JTextField idField = new JTextField();
-        JTextField nameField = new JTextField();
+        JTextField lastNameField = new JTextField();
+        JTextField firstNameField = new JTextField();
         JTextField birthdayField = new JTextField();
-        JTextField passwordField = new JTextField();
+        JTextField addressField = new JTextField();
+        JTextField phoneField = new JTextField();
         
-        panel.add(new JLabel("Employee ID:"));
-        panel.add(idField);
-        panel.add(new JLabel("Name:"));
-        panel.add(nameField);
-        panel.add(new JLabel("Birthday (YYYYMMDD):"));
-        panel.add(birthdayField);
-        panel.add(new JLabel("Password:"));
-        panel.add(passwordField);
+        basicPanel.add(new JLabel("Employee ID:"));
+        basicPanel.add(idField);
+        basicPanel.add(new JLabel("Last Name:"));
+        basicPanel.add(lastNameField);
+        basicPanel.add(new JLabel("First Name:"));
+        basicPanel.add(firstNameField);
+        basicPanel.add(new JLabel("Birthday (YYYYMMDD):"));
+        basicPanel.add(birthdayField);
+        basicPanel.add(new JLabel("Address:"));
+        basicPanel.add(addressField);
+        basicPanel.add(new JLabel("Phone Number:"));
+        basicPanel.add(phoneField);
         
-        JButton addButton = new JButton("Add");
+        // Government Numbers Tab
+        JPanel govPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+        govPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JTextField sssField = new JTextField();
+        JTextField philhealthField = new JTextField();
+        JTextField tinField = new JTextField();
+        JTextField pagibigField = new JTextField();
+        
+        govPanel.add(new JLabel("SSS Number:"));
+        govPanel.add(sssField);
+        govPanel.add(new JLabel("Philhealth Number:"));
+        govPanel.add(philhealthField);
+        govPanel.add(new JLabel("TIN Number:"));
+        govPanel.add(tinField);
+        govPanel.add(new JLabel("Pag-ibig Number:"));
+        govPanel.add(pagibigField);
+        
+        // Employment Info Tab
+        JPanel empPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        empPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JTextField statusField = new JTextField("Active");
+        JTextField positionField = new JTextField();
+        JTextField supervisorField = new JTextField();
+        
+        empPanel.add(new JLabel("Status:"));
+        empPanel.add(statusField);
+        empPanel.add(new JLabel("Position:"));
+        empPanel.add(positionField);
+        empPanel.add(new JLabel("Immediate Supervisor:"));
+        empPanel.add(supervisorField);
+        
+        // Salary Info Tab
+        JPanel salaryPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+        salaryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JTextField basicSalaryField = new JTextField("0.00");
+        JTextField riceSubsidyField = new JTextField("0.00");
+        JTextField phoneAllowanceField = new JTextField("0.00");
+        JTextField clothingAllowanceField = new JTextField("0.00");
+        JTextField grossSemiMonthlyField = new JTextField("0.00");
+        JTextField hourlyRateField = new JTextField("0.00");
+        
+        salaryPanel.add(new JLabel("Basic Salary:"));
+        salaryPanel.add(basicSalaryField);
+        salaryPanel.add(new JLabel("Rice Subsidy:"));
+        salaryPanel.add(riceSubsidyField);
+        salaryPanel.add(new JLabel("Phone Allowance:"));
+        salaryPanel.add(phoneAllowanceField);
+        salaryPanel.add(new JLabel("Clothing Allowance:"));
+        salaryPanel.add(clothingAllowanceField);
+        salaryPanel.add(new JLabel("Gross Semi-Monthly Rate:"));
+        salaryPanel.add(grossSemiMonthlyField);
+        salaryPanel.add(new JLabel("Hourly Rate:"));
+        salaryPanel.add(hourlyRateField);
+        
+        tabbedPane.addTab("Basic Info", basicPanel);
+        tabbedPane.addTab("Government IDs", govPanel);
+        tabbedPane.addTab("Employment", empPanel);
+        tabbedPane.addTab("Salary", salaryPanel);
+        
+        mainPanel.add(tabbedPane, BorderLayout.CENTER);
+        
+        JButton addButton = new JButton("Add Employee");
         addButton.addActionListener(e -> {
             try {
-                int id = Integer.parseInt(idField.getText());
-                String name = nameField.getText();
-                int birthday = Integer.parseInt(birthdayField.getText());
-                String password = passwordField.getText();
+                int id = Integer.parseInt(idField.getText().trim());
+                String lastName = lastNameField.getText().trim();
+                String firstName = firstNameField.getText().trim();
+                int birthday = Integer.parseInt(birthdayField.getText().trim());
+                String address = addressField.getText().trim();
+                String phoneNumber = phoneField.getText().trim();
+                String sssNum = sssField.getText().trim();
+                String philhealthNum = philhealthField.getText().trim();
+                String tinNum = tinField.getText().trim();
+                String pagibigNum = pagibigField.getText().trim();
+                String status = statusField.getText().trim();
+                String position = positionField.getText().trim();
+                String supervisor = supervisorField.getText().trim();
+                double basicSalary = Double.parseDouble(basicSalaryField.getText().trim());
+                double riceSubsidy = Double.parseDouble(riceSubsidyField.getText().trim());
+                double phoneAllowance = Double.parseDouble(phoneAllowanceField.getText().trim());
+                double clothingAllowance = Double.parseDouble(clothingAllowanceField.getText().trim());
+                double grossSemiMonthly = Double.parseDouble(grossSemiMonthlyField.getText().trim());
+                double hourlyRate = Double.parseDouble(hourlyRateField.getText().trim());
                 
-                Employee newEmp = new Employee(id, name, birthday, password);
+                String password = "pass" + id; // Default password
+                
+                Employee newEmp = new Employee(id, lastName, firstName, birthday, address,
+                                             phoneNumber, sssNum, philhealthNum, tinNum,
+                                             pagibigNum, status, position, supervisor,
+                                             basicSalary, riceSubsidy, phoneAllowance,
+                                             clothingAllowance, grossSemiMonthly, hourlyRate, password);
+                
                 payrollSystem.getAdmin().add(newEmp);
                 refreshEmployeeTable(tableModel);
                 dialog.dispose();
                 JOptionPane.showMessageDialog(this, "Employee added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(dialog, "Please enter valid numbers for ID and Birthday!", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Please enter valid numbers for numeric fields!", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
         
@@ -525,8 +1290,8 @@ public class MotorPH_Payroll_GUI extends JFrame {
         buttonPanel.add(addButton);
         buttonPanel.add(cancelButton);
         
-        dialog.add(panel, BorderLayout.CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.add(mainPanel);
         dialog.setVisible(true);
     }
     
@@ -542,32 +1307,126 @@ public class MotorPH_Payroll_GUI extends JFrame {
         
         if (emp != null) {
             JDialog dialog = new JDialog(this, "Edit Employee", true);
-            dialog.setSize(300, 150);
+            dialog.setSize(500, 400);
             dialog.setLocationRelativeTo(this);
             
-            JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
-            panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            JPanel mainPanel = new JPanel(new BorderLayout());
             
-            JTextField nameField = new JTextField(emp.getName());
+            // Create tabbed pane for better organization
+            JTabbedPane tabbedPane = new JTabbedPane();
+            
+            // Basic Info Tab
+            JPanel basicPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+            basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            
+            JTextField lastNameField = new JTextField(emp.getLastName());
+            JTextField firstNameField = new JTextField(emp.getFirstName());
             JTextField birthdayField = new JTextField(String.valueOf(emp.getBirthday()));
+            JTextField addressField = new JTextField(emp.getAddress());
+            JTextField phoneField = new JTextField(emp.getPhoneNumber());
             
-            panel.add(new JLabel("Name:"));
-            panel.add(nameField);
-            panel.add(new JLabel("Birthday (YYYYMMDD):"));
-            panel.add(birthdayField);
+            basicPanel.add(new JLabel("Last Name:"));
+            basicPanel.add(lastNameField);
+            basicPanel.add(new JLabel("First Name:"));
+            basicPanel.add(firstNameField);
+            basicPanel.add(new JLabel("Birthday (YYYYMMDD):"));
+            basicPanel.add(birthdayField);
+            basicPanel.add(new JLabel("Address:"));
+            basicPanel.add(addressField);
+            basicPanel.add(new JLabel("Phone Number:"));
+            basicPanel.add(phoneField);
+            
+            // Government Numbers Tab
+            JPanel govPanel = new JPanel(new GridLayout(4, 2, 10, 10));
+            govPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            
+            JTextField sssField = new JTextField(emp.getSssNum());
+            JTextField philhealthField = new JTextField(emp.getPhilhealthNum());
+            JTextField tinField = new JTextField(emp.getTinNum());
+            JTextField pagibigField = new JTextField(emp.getPagibigNum());
+            
+            govPanel.add(new JLabel("SSS Number:"));
+            govPanel.add(sssField);
+            govPanel.add(new JLabel("Philhealth Number:"));
+            govPanel.add(philhealthField);
+            govPanel.add(new JLabel("TIN Number:"));
+            govPanel.add(tinField);
+            govPanel.add(new JLabel("Pag-ibig Number:"));
+            govPanel.add(pagibigField);
+            
+            // Employment Info Tab
+            JPanel empPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+            empPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            
+            JTextField statusField = new JTextField(emp.getStatus());
+            JTextField positionField = new JTextField(emp.getPosition());
+            JTextField supervisorField = new JTextField(emp.getImmediateSupervisor());
+            
+            empPanel.add(new JLabel("Status:"));
+            empPanel.add(statusField);
+            empPanel.add(new JLabel("Position:"));
+            empPanel.add(positionField);
+            empPanel.add(new JLabel("Immediate Supervisor:"));
+            empPanel.add(supervisorField);
+            
+            // Salary Info Tab
+            JPanel salaryPanel = new JPanel(new GridLayout(6, 2, 10, 10));
+            salaryPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            
+            JTextField basicSalaryField = new JTextField(String.valueOf(emp.getBasicSalary()));
+            JTextField riceSubsidyField = new JTextField(String.valueOf(emp.getRiceSubsidy()));
+            JTextField phoneAllowanceField = new JTextField(String.valueOf(emp.getPhoneAllowance()));
+            JTextField clothingAllowanceField = new JTextField(String.valueOf(emp.getClothingAllowance()));
+            JTextField grossSemiMonthlyField = new JTextField(String.valueOf(emp.getGrossSemiMonthlyRate()));
+            JTextField hourlyRateField = new JTextField(String.valueOf(emp.getHourlyRate()));
+            
+            salaryPanel.add(new JLabel("Basic Salary:"));
+            salaryPanel.add(basicSalaryField);
+            salaryPanel.add(new JLabel("Rice Subsidy:"));
+            salaryPanel.add(riceSubsidyField);
+            salaryPanel.add(new JLabel("Phone Allowance:"));
+            salaryPanel.add(phoneAllowanceField);
+            salaryPanel.add(new JLabel("Clothing Allowance:"));
+            salaryPanel.add(clothingAllowanceField);
+            salaryPanel.add(new JLabel("Gross Semi-Monthly Rate:"));
+            salaryPanel.add(grossSemiMonthlyField);
+            salaryPanel.add(new JLabel("Hourly Rate:"));
+            salaryPanel.add(hourlyRateField);
+            
+            tabbedPane.addTab("Basic Info", basicPanel);
+            tabbedPane.addTab("Government IDs", govPanel);
+            tabbedPane.addTab("Employment", empPanel);
+            tabbedPane.addTab("Salary", salaryPanel);
+            
+            mainPanel.add(tabbedPane, BorderLayout.CENTER);
             
             JButton updateButton = new JButton("Update");
             updateButton.addActionListener(e -> {
                 try {
-                    String name = nameField.getText();
-                    int birthday = Integer.parseInt(birthdayField.getText());
+                    emp.setLastName(lastNameField.getText().trim());
+                    emp.setFirstName(firstNameField.getText().trim());
+                    emp.setBirthday(Integer.parseInt(birthdayField.getText().trim()));
+                    emp.setAddress(addressField.getText().trim());
+                    emp.setPhoneNumber(phoneField.getText().trim());
+                    emp.setSssNum(sssField.getText().trim());
+                    emp.setPhilhealthNum(philhealthField.getText().trim());
+                    emp.setTinNum(tinField.getText().trim());
+                    emp.setPagibigNum(pagibigField.getText().trim());
+                    emp.setStatus(statusField.getText().trim());
+                    emp.setPosition(positionField.getText().trim());
+                    emp.setImmediateSupervisor(supervisorField.getText().trim());
+                    emp.setBasicSalary(Double.parseDouble(basicSalaryField.getText().trim()));
+                    emp.setRiceSubsidy(Double.parseDouble(riceSubsidyField.getText().trim()));
+                    emp.setPhoneAllowance(Double.parseDouble(phoneAllowanceField.getText().trim()));
+                    emp.setClothingAllowance(Double.parseDouble(clothingAllowanceField.getText().trim()));
+                    emp.setGrossSemiMonthlyRate(Double.parseDouble(grossSemiMonthlyField.getText().trim()));
+                    emp.setHourlyRate(Double.parseDouble(hourlyRateField.getText().trim()));
                     
-                    payrollSystem.getAdmin().edit(empId, name, birthday);
                     refreshEmployeeTable(tableModel);
                     dialog.dispose();
                     JOptionPane.showMessageDialog(this, "Employee updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(dialog, "Please enter a valid number for Birthday!", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(dialog, "Please enter valid numbers for numeric fields!", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
             
@@ -578,8 +1437,8 @@ public class MotorPH_Payroll_GUI extends JFrame {
             buttonPanel.add(updateButton);
             buttonPanel.add(cancelButton);
             
-            dialog.add(panel, BorderLayout.CENTER);
-            dialog.add(buttonPanel, BorderLayout.SOUTH);
+            mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+            dialog.add(mainPanel);
             dialog.setVisible(true);
         }
     }
@@ -691,24 +1550,17 @@ public class MotorPH_Payroll_GUI extends JFrame {
     // Helper methods for attendance management
     private void refreshAttendanceTable(DefaultTableModel tableModel) {
         tableModel.setRowCount(0);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         
         for (Attendance attendance : payrollSystem.getAttendanceRecords()) {
-            String loginTime = attendance.getLoginDateTime() != null ? 
-                attendance.getLoginDateTime().format(formatter) : "No log in";
-            String logoutTime = attendance.getLogoutDateTime() != null ? 
-                attendance.getLogoutDateTime().format(formatter) : "No log out";
-            
-            long hoursWorked = 0;
-            if (attendance.getLoginDateTime() != null && attendance.getLogoutDateTime() != null) {
-                hoursWorked = java.time.Duration.between(attendance.getLoginDateTime(), attendance.getLogoutDateTime()).toHours();
-            }
+            long hoursWorked = attendance.calculateHoursWorked();
             
             Object[] rowData = {
-                attendance.getId(),
-                attendance.getName(),
-                loginTime,
-                logoutTime,
+                attendance.getEmployeeId(),
+                attendance.getLastName(),
+                attendance.getFirstName(),
+                attendance.getDate(),
+                attendance.getLogIn(),
+                attendance.getLogOut(),
                 hoursWorked + " hours"
             };
             tableModel.addRow(rowData);
@@ -792,11 +1644,10 @@ public class MotorPH_Payroll_GUI extends JFrame {
     public static void main(String[] args) {
         // Set look and feel with better error handling
         try {
-                UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-            } catch (Exception e) {
-                // Continue with default look and feel
-            }
-        
+            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+        } catch (Exception e) {
+            // Continue with default look and feel
+        }
         
         // Create and show GUI on Event Dispatch Thread
         SwingUtilities.invokeLater(new Runnable() {
